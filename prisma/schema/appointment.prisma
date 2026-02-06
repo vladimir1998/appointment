@@ -1,0 +1,22 @@
+model Appointment {
+  id          String            @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime          @map("start_time")
+  endTime     DateTime          @map("end_time")
+  status      AppointmentStatus @default(PENDING)
+  userId      String            @map("user_id")
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  deletedAt   DateTime?         @map("deleted_at")
+
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}

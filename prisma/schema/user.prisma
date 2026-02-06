@@ -1,0 +1,13 @@
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  appointments  Appointment[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
