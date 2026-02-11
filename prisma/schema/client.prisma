@@ -1,0 +1,29 @@
+model Client {
+  id            String    @id @default(uuid())
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  phone         String?   @unique
+  notes         String?
+  userId        String?   @map("user_id")
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organizations OrganizationClient[]
+  appointments  Appointment[] @relation("ClientAppointments")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@map("clients")
+}
+
+model OrganizationClient {
+  id             String       @id @default(uuid())
+  clientId       String       @map("client_id")
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  notes          String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@unique([clientId, organizationId])
+  @@map("organization_clients")
+}

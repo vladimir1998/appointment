@@ -8,7 +8,7 @@ model User {
   deletedAt  DateTime? @map("deleted_at")
 
   employees     Employee[]
-  appointments  Appointment[]  @relation("ClientAppointments")
+  clients       Client[]
   refreshTokens RefreshToken[]
 
   @@map("users")
