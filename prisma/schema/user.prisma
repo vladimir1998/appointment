@@ -1,12 +1,14 @@
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id         String    @id @default(uuid())
+  email      String    @unique
+  password   String
+  globalRole Role      @default(MEMBER) @map("global_role")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
 
-  appointments  Appointment[]
+  employees     Employee[]
+  appointments  Appointment[]  @relation("ClientAppointments")
   refreshTokens RefreshToken[]
 
   @@map("users")

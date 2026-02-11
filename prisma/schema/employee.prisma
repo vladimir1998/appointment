@@ -1,0 +1,20 @@
+model Employee {
+  id             String    @id @default(uuid())
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  phone          String?
+  position       String?
+  role           Role      @default(MEMBER)
+  isActive       Boolean   @default(true) @map("is_active")
+  userId         String    @map("user_id")
+  organizationId String    @map("organization_id")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments   Appointment[] @relation("EmployeeAppointments")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  @@unique([userId, organizationId])
+  @@map("employees")
+}

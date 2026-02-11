@@ -39,6 +39,12 @@ export class AuthService {
   async login(dto: LoginInput) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: {
+        employees: {
+          where: { deletedAt: null, isActive: true },
+          include: { organization: { select: { id: true, name: true } } },
+        },
+      },
     });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -49,7 +55,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.email);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        globalRole: user.globalRole,
+        isEmployee: user.employees.length > 0,
+        employees: user.employees.map((emp) => ({
+          id: emp.id,
+          role: emp.role,
+          position: emp.position,
+          organization: emp.organization,
+        })),
+      },
+    };
   }
 
   async refresh(dto: RefreshInput) {
