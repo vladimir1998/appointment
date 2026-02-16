@@ -8,6 +8,7 @@ model Organization {
 
   employees Employee[]
   clients   OrganizationClient[]
+  services  Service[]
 
   @@map("organizations")
 }
