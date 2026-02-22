@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -7,6 +7,8 @@ import { OrganizationModule } from './organization/organization.module';
 import { EmployeeModule } from './employee/employee.module';
 import { ClientModule } from './client/client.module';
 import { ServiceModule } from './service/service.module';
+import { PositionModule } from './position/position.module';
+import { AuthContextMiddleware } from './common/middleware/auth-context.middleware';
 
 @Module({
   imports: [
@@ -18,6 +20,11 @@ import { ServiceModule } from './service/service.module';
     EmployeeModule,
     ClientModule,
     ServiceModule,
+    PositionModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthContextMiddleware).forRoutes('*');
+  }
+}

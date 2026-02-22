@@ -23,6 +23,10 @@ import {
   UpdateEmployeeDto,
   updateEmployeeSchema,
 } from './dto/update-employee.dto';
+import {
+  RegisterEmployeeDto,
+  registerEmployeeSchema,
+} from './dto/register-employee.dto';
 
 @ApiTags('Employees')
 @ApiBearerAuth()
@@ -31,8 +35,15 @@ import {
 export class EmployeeController {
   constructor(private employeeService: EmployeeService) {}
 
+  @Post('register')
+  @ApiOperation({ summary: 'Register new user and add as employee to organization' })
+  @UsePipes(new ZodValidationPipe(registerEmployeeSchema))
+  register(@Body() dto: RegisterEmployeeDto) {
+    return this.employeeService.register(dto);
+  }
+
   @Post()
-  @ApiOperation({ summary: 'Add employee to organization' })
+  @ApiOperation({ summary: 'Add existing user as employee to organization' })
   @UsePipes(new ZodValidationPipe(createEmployeeSchema))
   create(@Body() dto: CreateEmployeeDto) {
     return this.employeeService.create(dto);

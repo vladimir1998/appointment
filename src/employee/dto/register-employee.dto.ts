@@ -1,18 +1,25 @@
 import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export const createEmployeeSchema = z.object({
+export const registerEmployeeSchema = z.object({
+  email: z.email(),
+  password: z.string().min(6).max(100),
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   phone: z.string().max(20).optional(),
   positionId: z.uuid().optional(),
-  userId: z.uuid(),
   organizationId: z.uuid(),
 });
 
-export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+export type RegisterEmployeeInput = z.infer<typeof registerEmployeeSchema>;
 
-export class CreateEmployeeDto {
+export class RegisterEmployeeDto {
+  @ApiProperty({ example: 'john@example.com' })
+  email: string;
+
+  @ApiProperty({ example: 'secret123' })
+  password: string;
+
   @ApiProperty({ example: 'John' })
   firstName: string;
 
@@ -24,9 +31,6 @@ export class CreateEmployeeDto {
 
   @ApiPropertyOptional({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID должности' })
   positionId?: string;
-
-  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
-  userId: string;
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   organizationId: string;

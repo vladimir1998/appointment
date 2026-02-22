@@ -4,11 +4,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export const createServiceSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(2000),
-  photo: z.string().url().optional(),
-  price: z.number().positive(),
-  duration: z.number().int().positive(),
-  durationMax: z.number().int().positive().optional(),
-  organizationId: z.string().uuid(),
+  photo: z.url().optional(),
+  price: z.coerce.number().positive(),
+  duration: z.coerce.number().int().positive(),
+  durationMax: z.coerce.number().int().positive().optional(),
+  organizationId: z.uuid(),
 }).refine(
   (data) => !data.durationMax || data.durationMax > data.duration,
   { message: 'durationMax must be greater than duration', path: ['durationMax'] },

@@ -2,6 +2,7 @@ model Organization {
   id          String    @id @default(uuid())
   name        String
   description String?
+  logo        String?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
@@ -9,6 +10,7 @@ model Organization {
   employees Employee[]
   clients   OrganizationClient[]
   services  Service[]
+  positions Position[]
 
   @@map("organizations")
 }

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ApiProperty } from '@nestjs/swagger';
 
 export const refreshSchema = z.object({
-  refreshToken: z.string().uuid(),
+  refreshToken: z.uuid(),
 });
 
 export type RefreshInput = z.infer<typeof refreshSchema>;

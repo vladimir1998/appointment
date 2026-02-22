@@ -4,10 +4,10 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 export const updateServiceSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().min(1).max(2000).optional(),
-  photo: z.string().url().optional().nullable(),
-  price: z.number().positive().optional(),
-  duration: z.number().int().positive().optional(),
-  durationMax: z.number().int().positive().optional().nullable(),
+  photo: z.url().optional().nullable(),
+  price: z.coerce.number().positive().optional(),
+  duration: z.coerce.number().int().positive().optional(),
+  durationMax: z.coerce.number().int().positive().optional().nullable(),
 });
 
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;

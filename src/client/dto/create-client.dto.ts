@@ -6,8 +6,8 @@ export const createClientSchema = z.object({
   lastName: z.string().min(1).max(100),
   phone: z.string().max(20).optional(),
   notes: z.string().max(1000).optional(),
-  userId: z.string().uuid().optional(),
-  organizationId: z.string().uuid(),
+  userId: z.uuid().optional(),
+  organizationId: z.uuid(),
 });
 
 export type CreateClientInput = z.infer<typeof createClientSchema>;
