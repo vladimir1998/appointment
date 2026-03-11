@@ -42,7 +42,7 @@ export class AuthService {
       include: {
         employees: {
           where: { deletedAt: null, isActive: true },
-          include: { organization: { select: { id: true, name: true } } },
+          include: { organization: { select: { id: true, name: true } }, position: true },
         },
       },
     });

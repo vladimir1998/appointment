@@ -8,6 +8,7 @@ import { EmployeeModule } from './employee/employee.module';
 import { ClientModule } from './client/client.module';
 import { ServiceModule } from './service/service.module';
 import { PositionModule } from './position/position.module';
+import { AppointmentModule } from './appointment/appointment.module';
 import { AuthContextMiddleware } from './common/middleware/auth-context.middleware';
 
 @Module({
@@ -21,6 +22,7 @@ import { AuthContextMiddleware } from './common/middleware/auth-context.middlewa
     ClientModule,
     ServiceModule,
     PositionModule,
+    AppointmentModule,
   ],
 })
 export class AppModule implements NestModule {

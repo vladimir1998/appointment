@@ -1,19 +1,21 @@
 model Appointment {
-  id          String            @id @default(uuid())
-  title       String
-  description String?
-  startTime   DateTime          @map("start_time")
-  endTime     DateTime          @map("end_time")
-  status      AppointmentStatus @default(PENDING)
-  clientId    String            @map("client_id")
-  client      Client            @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
-  employeeId  String            @map("employee_id")
-  employee    Employee          @relation("EmployeeAppointments", fields: [employeeId], references: [id], onDelete: Cascade)
-  serviceId   String            @map("service_id")
-  service     Service           @relation("ServiceAppointments", fields: [serviceId], references: [id], onDelete: Cascade)
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  deletedAt   DateTime?         @map("deleted_at")
+  id             String            @id @default(uuid())
+  title          String
+  description    String?
+  startTime      DateTime          @map("start_time")
+  endTime        DateTime          @map("end_time")
+  status         AppointmentStatus @default(PENDING)
+  clientId       String            @map("client_id")
+  client         Client            @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
+  employeeId     String            @map("employee_id")
+  employee       Employee          @relation("EmployeeAppointments", fields: [employeeId], references: [id], onDelete: Cascade)
+  serviceId      String            @map("service_id")
+  service        Service           @relation("ServiceAppointments", fields: [serviceId], references: [id], onDelete: Cascade)
+  organizationId String            @map("organization_id")
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  deletedAt      DateTime?         @map("deleted_at")
 
   @@map("appointments")
 }

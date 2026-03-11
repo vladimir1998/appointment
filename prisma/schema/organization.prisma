@@ -7,10 +7,11 @@ model Organization {
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  employees Employee[]
-  clients   OrganizationClient[]
-  services  Service[]
-  positions Position[]
+  employees    Employee[]
+  clients      OrganizationClient[]
+  services     Service[]
+  positions    Position[]
+  appointments Appointment[]
 
   @@map("organizations")
 }
