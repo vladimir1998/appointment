@@ -5,8 +5,8 @@ export const updateServiceSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().min(1).max(2000).optional(),
   photo: z.url().optional().nullable(),
-  price: z.coerce.number().positive().optional(),
-  duration: z.coerce.number().int().positive().optional(),
+  price: z.coerce.number().min(0).optional(),
+  duration: z.coerce.number().int().min(0).optional(),
   durationMax: z.coerce.number().int().positive().optional().nullable(),
 });
 

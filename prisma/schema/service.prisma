@@ -3,8 +3,8 @@ model Service {
   title          String
   description    String
   photo          String?
-  price          Decimal      @db.Decimal(10, 2)
-  duration       Int              // min duration in minutes (or fixed if durationMax is null)
+  price          Decimal?     @db.Decimal(10, 2)
+  duration       Int?             // min duration in minutes (or fixed if durationMax is null)
   durationMax    Int?   @map("duration_max") // max duration in minutes (null = fixed duration)
   organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
