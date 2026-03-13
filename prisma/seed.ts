@@ -6,7 +6,28 @@ import * as bcrypt from 'bcrypt';
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
+const DEFAULT_PERMISSIONS = [
+  { name: 'create service', value: 'service:create' },
+  { name: 'read service', value: 'service:read' },
+  { name: 'update service', value: 'service:update' },
+  { name: 'delete service', value: 'service:delete' },
+  { name: 'assigne service', value: 'service:assigne' },
+  { name: 'create appointment', value: 'appointment:create' },
+  { name: 'read appointment', value: 'appointment:read' },
+  { name: 'update appointment', value: 'appointment:update' },
+  { name: 'delete appointment', value: 'appointment:delete' },
+];
+
 async function main() {
+  for (const p of DEFAULT_PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { value: p.value },
+      create: p,
+      update: { name: p.name },
+    });
+  }
+  console.log(`Seeded ${DEFAULT_PERMISSIONS.length} default permissions`);
+
   const email = 'superadmin@shedul.com';
   const password = 'superadmin123';
 

@@ -1,13 +1,9 @@
 import { z } from 'zod';
 import { ApiProperty } from '@nestjs/swagger';
 
-const permissionRegex = /^[a-z_]+:[a-z_]+$/;
-
 export const createPositionSchema = z.object({
   name: z.string().min(1).max(100),
-  permissions: z
-    .array(z.string().regex(permissionRegex, 'Permission must be in format resource:action'))
-    .default([]),
+  permissions: z.array(z.string().uuid()).default([]),
   organizationId: z.uuid(),
 });
 
@@ -21,9 +17,8 @@ export class CreatePositionDto {
   name: string;
 
   @ApiProperty({
-    example: ['services:read', 'services:create', 'appointments:read'],
-    description:
-      'Список прав в формате resource:action. Доступные ресурсы: services, employees, clients, appointments, positions. Доступные действия: read, create, update, delete.',
+    example: ['550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002'],
+    description: 'Массив уникальных идентификаторов прав (Permission)',
     type: [String],
     default: [],
   })

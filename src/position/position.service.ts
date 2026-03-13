@@ -8,8 +8,15 @@ export class PositionService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreatePositionInput) {
+    const { permissions, ...rest } = dto;
     return this.prisma.position.create({
-      data: dto,
+      data: {
+        ...rest,
+        permissions: permissions?.length
+          ? { connect: permissions.map((id) => ({ id })) }
+          : undefined,
+      },
+      include: { permissions: true },
     });
   }
 
@@ -17,6 +24,7 @@ export class PositionService {
     return this.prisma.position.findMany({
       where: this.prisma.notDeleted({ organizationId }),
       orderBy: { name: 'asc' },
+      include: { permissions: true },
     });
   }
 
@@ -32,9 +40,17 @@ export class PositionService {
 
   async update(id: string, dto: UpdatePositionInput) {
     await this.findOne(id);
+    const { permissions, ...rest } = dto;
+    const data: Record<string, unknown> = { ...rest };
+    if (permissions !== undefined) {
+      data.permissions = {
+        set: permissions.map((permissionId) => ({ id: permissionId })),
+      };
+    }
     return this.prisma.position.update({
       where: { id },
-      data: dto,
+      data,
+      include: { permissions: true },
     });
   }
 

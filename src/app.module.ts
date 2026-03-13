@@ -12,6 +12,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { AuthContextMiddleware } from './common/middleware/auth-context.middleware';
 
 @Module({
+  providers: [AuthContextMiddleware],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,

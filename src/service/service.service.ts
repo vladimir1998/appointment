@@ -14,16 +14,35 @@ export class ServiceService {
     });
   }
 
-  async findAllByOrganization(organizationId: string) {
+  async findAllByOrganization(
+    organizationId: string,
+    options?: { includeInactive?: boolean },
+  ) {
+    const where: Record<string, unknown> = this.prisma.notDeleted({
+      organizationId,
+    });
+    if (!options?.includeInactive) {
+      where.isActive = true;
+    }
     return this.prisma.service.findMany({
-      where: this.prisma.notDeleted({ organizationId }),
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    options?: { includeInactive?: boolean; organizationId?: string },
+  ) {
+    const where: Record<string, unknown> = this.prisma.notDeleted({ id });
+    if (!options?.includeInactive) {
+      where.isActive = true;
+    }
+    if (options?.organizationId) {
+      where.organizationId = options.organizationId;
+    }
     const service = await this.prisma.service.findFirst({
-      where: this.prisma.notDeleted({ id }),
+      where,
       include: { organization: { select: { id: true, name: true } } },
     });
     if (!service) {
@@ -32,8 +51,11 @@ export class ServiceService {
     return service;
   }
 
-  async update(id: string, dto: UpdateServiceInput) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateServiceInput, organizationId?: string) {
+    const service = await this.findOne(id, { includeInactive: true });
+    if (organizationId && service.organizationId !== organizationId) {
+      throw new NotFoundException('Service not found');
+    }
     return this.prisma.service.update({
       where: { id },
       data: dto,
@@ -41,8 +63,11 @@ export class ServiceService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, organizationId?: string) {
+    const service = await this.findOne(id, { includeInactive: true });
+    if (organizationId && service.organizationId !== organizationId) {
+      throw new NotFoundException('Service not found');
+    }
     return this.prisma.softDelete(this.prisma.service, { id });
   }
 }
