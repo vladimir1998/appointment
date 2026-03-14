@@ -5,7 +5,7 @@ import { RequestWithContext } from '../middleware/auth-context.middleware';
  * Returns true if user is employee of current organization and has the given permission.
  * Use for conditional logic (e.g. includeInactive when user has service:read).
  */
-export const HasPermission = (permission: string) =>
+export const HasPermission: (permission: string) => any = (permission: string) =>
   createParamDecorator(
     (_data: unknown, ctx: ExecutionContext): boolean => {
       const req = ctx.switchToHttp().getRequest<RequestWithContext>();

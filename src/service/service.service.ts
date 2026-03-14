@@ -18,7 +18,7 @@ export class ServiceService {
       ...(dto.durationMax != null && { durationMax: dto.durationMax }),
     };
     return this.prisma.service.create({
-      data,
+      data: data as Parameters<PrismaService['service']['create']>[0]['data'],
       include: { organization: { select: { id: true, name: true } } },
     });
   }
