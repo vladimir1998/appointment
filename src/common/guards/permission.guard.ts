@@ -5,7 +5,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RequestWithContext } from '../middleware/auth-context.middleware';
+import type { RequestWithContext } from '../auth-context.types';
+import { hasGlobalPermission, hasPermission } from '../permission.utils';
 import { REQUIRE_PERMISSION_KEY } from '../decorators/require-permission.decorator';
 
 @Injectable()
@@ -22,6 +23,10 @@ export class PermissionGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<RequestWithContext>();
     const ctx = req.authContext;
 
+    if (hasGlobalPermission(ctx?.user, permission)) {
+      return true;
+    }
+
     if (!ctx?.organizationId) {
       throw new ForbiddenException('x-organization-id header is required');
     }
@@ -32,10 +37,7 @@ export class PermissionGuard implements CanActivate {
       );
     }
 
-    const hasPermission = ctx.user.position.permissions.some(
-      (p) => p.value === permission,
-    );
-    if (!hasPermission) {
+    if (!hasPermission(ctx.user, permission, ctx.organizationId)) {
       throw new ForbiddenException(`Missing permission: ${permission}`);
     }
 

@@ -22,22 +22,53 @@ const DEFAULT_PERMISSIONS = [
   { name: 'delete appointment', value: 'appointment:delete' },
 ];
 
+const SUPERADMIN_ORG_NAME = 'System';
+const SUPERADMIN_POSITION_NAME = 'Superadmin';
+
 async function main() {
+  const permissions: { id: string }[] = [];
   for (const p of DEFAULT_PERMISSIONS) {
-    await prisma.permission.upsert({
+    const perm = await prisma.permission.upsert({
       where: { value: p.value },
       create: p,
       update: { name: p.name },
     });
+    permissions.push(perm);
   }
   console.log(`Seeded ${DEFAULT_PERMISSIONS.length} default permissions`);
+
+  const org = await prisma.organization.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000001' },
+    create: {
+      id: '00000000-0000-0000-0000-000000000001',
+      name: SUPERADMIN_ORG_NAME,
+    },
+    update: {},
+  });
+
+  const superadminPosition = await prisma.position.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000002' },
+    create: {
+      id: '00000000-0000-0000-0000-000000000002',
+      name: SUPERADMIN_POSITION_NAME,
+      organizationId: org.id,
+      permissions: { connect: permissions.map((p) => ({ id: p.id })) },
+    },
+    update: {
+      permissions: { set: permissions.map((p) => ({ id: p.id })) },
+    },
+  });
 
   const email = 'superadmin@shedul.com';
   const password = 'superadmin123';
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    console.log(`Superadmin already exists: ${email}`);
+    await prisma.user.update({
+      where: { email },
+      data: { globalPositionId: superadminPosition.id },
+    });
+    console.log(`Superadmin already exists: ${email}, globalPosition updated`);
     return;
   }
 
@@ -47,14 +78,14 @@ async function main() {
     data: {
       email,
       password: hash,
-      globalRole: 'OWNER',
+      globalPositionId: superadminPosition.id,
     },
   });
 
   console.log('Superadmin created:');
   console.log(`  email:    ${user.email}`);
   console.log(`  password: ${password}`);
-  console.log(`  role:     ${user.globalRole}`);
+  console.log(`  position: ${SUPERADMIN_POSITION_NAME} (all permissions)`);
 }
 
 main()

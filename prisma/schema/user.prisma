@@ -1,9 +1,10 @@
 model User {
-  id         String    @id @default(uuid())
-  email      String    @unique
-  password   String
-  globalRole Role      @default(MEMBER) @map("global_role")
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  globalPositionId String?   @map("global_position_id")
+  globalPosition   Position? @relation("UserGlobalPosition", fields: [globalPositionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
 

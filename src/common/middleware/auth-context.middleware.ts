@@ -1,30 +1,10 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { RequestWithContext } from '../auth-context.types';
 
-export interface UserPosition {
-  id: string;
-  name: string;
-  permissions: { id: string; name: string; value: string }[];
-}
-
-export interface RequestUser {
-  id: string;
-  email: string;
-  position?: UserPosition;
-}
-
-export interface AuthContext {
-  user: RequestUser;
-  organizationId: string;
-}
-
-export interface RequestWithContext extends Request {
-  user?: RequestUser;
-  organizationId?: string;
-  authContext?: AuthContext;
-}
+export type { RequestWithContext, RequestUser, AuthContext, UserPosition } from '../auth-context.types';
 
 @Injectable()
 export class AuthContextMiddleware implements NestMiddleware {
@@ -34,8 +14,10 @@ export class AuthContextMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: RequestWithContext, res: Response, next: NextFunction) {
-    const orgId = req.headers['x-organization-id'];
-    if (typeof orgId === 'string' && orgId) {
+    const orgIdHeader = req.headers['x-organization-id'];
+    const orgId =
+      typeof orgIdHeader === 'string' && orgIdHeader ? orgIdHeader : undefined;
+    if (orgId) {
       req.organizationId = orgId;
     }
 
@@ -46,34 +28,68 @@ export class AuthContextMiddleware implements NestMiddleware {
         const payload = this.jwt.verify<{ sub: string; email: string }>(token);
         req.user = { id: payload.sub, email: payload.email };
 
-        if (orgId) {
-          const employee = await this.prisma.employee.findFirst({
-            where: this.prisma.notDeleted({
-              userId: payload.sub,
-              organizationId: orgId,
-            }),
+        const [userWithGlobalPosition, employee] = await Promise.all([
+          this.prisma.user.findUnique({
+            where: { id: payload.sub },
             include: {
-              position: {
+              globalPosition: {
                 include: {
                   permissions: { where: this.prisma.notDeleted() },
                 },
               },
             },
-          });
+          }),
+          orgId
+            ? this.prisma.employee.findFirst({
+                where: this.prisma.notDeleted({
+                  userId: payload.sub,
+                  organizationId: orgId,
+                }),
+                include: {
+                  position: {
+                    include: {
+                      permissions: { where: this.prisma.notDeleted() },
+                    },
+                  },
+                },
+              })
+            : null,
+        ]);
 
-          if (employee?.position && !employee.position.deletedAt) {
-            req.user.position = {
-              id: employee.position.id,
-              name: employee.position.name,
-              permissions: employee.position.permissions.map((p: { id: string; name: string; value: string }) => ({
-                id: p.id,
-                name: p.name,
-                value: p.value,
-              })),
-            };
-          }
+        const pos = userWithGlobalPosition?.globalPosition;
+        if (pos && !pos.deletedAt) {
+          req.user.globalPosition = {
+            id: pos.id,
+            name: pos.name,
+            permissions: pos.permissions.map((p: { id: string; name: string; value: string }) => ({
+              id: p.id,
+              name: p.name,
+              value: p.value,
+            })),
+          };
         }
-        if (req.organizationId) {
+
+        type EmployeeWithPosition = {
+          position?: {
+            id: string;
+            name: string;
+            deletedAt: Date | null;
+            permissions: { id: string; name: string; value: string }[];
+          };
+        } | null;
+        const emp = employee as EmployeeWithPosition;
+        if (emp?.position && !emp.position.deletedAt) {
+          req.user.position = {
+            id: emp.position.id,
+            name: emp.position.name,
+            permissions: emp.position.permissions.map((p) => ({
+              id: p.id,
+              name: p.name,
+              value: p.value,
+            })),
+          };
+        }
+        if (req.user && req.organizationId) {
           req.authContext = {
             user: req.user,
             organizationId: req.organizationId,

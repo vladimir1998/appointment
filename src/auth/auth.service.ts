@@ -62,7 +62,6 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        globalRole: user.globalRole,
         isEmployee: user.employees.length > 0,
         employees: user.employees.map((emp) => ({
           id: emp.id,
