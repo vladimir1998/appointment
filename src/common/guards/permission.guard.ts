@@ -21,23 +21,24 @@ export class PermissionGuard implements CanActivate {
     if (!permission) return true;
 
     const req = context.switchToHttp().getRequest<RequestWithContext>();
-    const ctx = req.authContext;
+    const user = req.authContext?.user ?? req.user;
+    const organizationId = req.authContext?.organizationId ?? req.organizationId;
 
-    if (hasGlobalPermission(ctx?.user, permission)) {
+    if (hasGlobalPermission(user, permission)) {
       return true;
     }
 
-    if (!ctx?.organizationId) {
-      throw new ForbiddenException('x-organization-id header is required');
+    if (!organizationId) {
+      throw new ForbiddenException(`Missing permission: ${permission}`);
     }
 
-    if (!ctx.user?.position) {
+    if (!user?.position) {
       throw new ForbiddenException(
         'You must be an employee of this organization',
       );
     }
 
-    if (!hasPermission(ctx.user, permission, ctx.organizationId)) {
+    if (!hasPermission(user, permission, organizationId)) {
       throw new ForbiddenException(`Missing permission: ${permission}`);
     }
 

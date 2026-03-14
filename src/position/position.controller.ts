@@ -13,12 +13,15 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { PositionService } from './position.service';
 import { CreatePositionDto, createPositionSchema } from './dto/create-position.dto';
@@ -26,12 +29,15 @@ import { UpdatePositionDto, updatePositionSchema } from './dto/update-position.d
 
 @ApiTags('Positions')
 @ApiBearerAuth()
+@ApiHeader({ name: 'x-organization-id', required: false })
 @UseGuards(JwtAuthGuard)
 @Controller('positions')
 export class PositionController {
   constructor(private positionService: PositionService) {}
 
   @Post()
+  @UseGuards(PermissionGuard)
+  @RequirePermission('position:create')
   @ApiOperation({
     summary: 'Создать должность',
     description: 'Создаёт новую должность для организации с заданным набором прав доступа.',
@@ -45,6 +51,8 @@ export class PositionController {
   }
 
   @Get()
+  @UseGuards(PermissionGuard)
+  @RequirePermission('position:read')
   @ApiOperation({
     summary: 'Список должностей организации',
     description: 'Возвращает все активные должности указанной организации, отсортированные по названию.',
@@ -57,6 +65,8 @@ export class PositionController {
   }
 
   @Get(':id')
+  @UseGuards(PermissionGuard)
+  @RequirePermission('position:read')
   @ApiOperation({
     summary: 'Получить должность по ID',
     description: 'Возвращает должность с её правами доступа.',
@@ -69,6 +79,8 @@ export class PositionController {
   }
 
   @Patch(':id')
+  @UseGuards(PermissionGuard)
+  @RequirePermission('position:update')
   @ApiOperation({
     summary: 'Обновить должность',
     description: 'Обновляет название и/или список прав. Поле permissions полностью заменяет текущий список.',
@@ -85,6 +97,8 @@ export class PositionController {
   }
 
   @Delete(':id')
+  @UseGuards(PermissionGuard)
+  @RequirePermission('position:delete')
   @ApiOperation({
     summary: 'Удалить должность',
     description: 'Мягкое удаление — должность скрывается, но остаётся в базе данных.',

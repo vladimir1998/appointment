@@ -7,6 +7,10 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const DEFAULT_PERMISSIONS = [
+  { name: 'create position', value: 'position:create' },
+  { name: 'read position', value: 'position:read' },
+  { name: 'update position', value: 'position:update' },
+  { name: 'delete position', value: 'position:delete' },
   { name: 'create service', value: 'service:create' },
   { name: 'read service', value: 'service:read' },
   { name: 'update service', value: 'service:update' },
