@@ -75,7 +75,7 @@ export class ServiceController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(updateServiceSchema)) dto: UpdateServiceDto,
-    @OrgId() organizationId: string | undefined,
+    @OrgId() organizationId: string,
   ) {
     return this.serviceService.update(id, dto, organizationId);
   }
@@ -85,7 +85,7 @@ export class ServiceController {
   @ApiOperation({ summary: 'Delete service (soft delete)' })
   remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @OrgId() organizationId: string | undefined,
+    @OrgId() organizationId: string,
   ) {
     return this.serviceService.remove(id, organizationId);
   }
