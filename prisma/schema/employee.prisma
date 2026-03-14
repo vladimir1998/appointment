@@ -5,6 +5,7 @@ model Employee {
   phone          String?
   role           Role      @default(MEMBER)
   isActive       Boolean   @default(true) @map("is_active")
+  isPublic       Boolean   @default(false) @map("is_public")
   userId         String    @map("user_id")
   organizationId String    @map("organization_id")
   positionId     String?   @map("position_id")

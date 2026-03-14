@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response, NextFunction } from 'express';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 export interface UserPosition {
   id: string;
@@ -65,7 +65,7 @@ export class AuthContextMiddleware implements NestMiddleware {
             req.user.position = {
               id: employee.position.id,
               name: employee.position.name,
-              permissions: employee.position.permissions.map((p) => ({
+              permissions: employee.position.permissions.map((p: { id: string; name: string; value: string }) => ({
                 id: p.id,
                 name: p.name,
                 value: p.value,

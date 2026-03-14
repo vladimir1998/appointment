@@ -8,8 +8,17 @@ export class ServiceService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateServiceInput) {
+    const data = {
+      title: dto.title,
+      description: dto.description,
+      organizationId: dto.organizationId,
+      ...(dto.photo != null && { photo: dto.photo }),
+      ...(dto.price != null && { price: dto.price }),
+      ...(dto.duration != null && { duration: dto.duration }),
+      ...(dto.durationMax != null && { durationMax: dto.durationMax }),
+    };
     return this.prisma.service.create({
-      data: dto,
+      data,
       include: { organization: { select: { id: true, name: true } } },
     });
   }
