@@ -10,7 +10,8 @@ export const HasPermission: (permission: string) => any = (permission: string) =
   createParamDecorator(
     (_data: unknown, ctx: ExecutionContext): boolean => {
       const req = ctx.switchToHttp().getRequest<RequestWithContext>();
-      const authCtx = req.authContext;
-      return hasPermission(authCtx?.user, permission, authCtx?.organizationId);
+      const user = req.authContext?.user ?? req.user;
+      const organizationId = req.authContext?.organizationId ?? req.organizationId;
+      return hasPermission(user, permission, organizationId);
     },
   );

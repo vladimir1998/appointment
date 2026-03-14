@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrgRequiredGuard } from '../common/guards/org-required.guard';
 import { PermissionGuard } from '../common/guards/permission.guard';
+import { AllowSkipOrgWhenGlobal } from '../common/decorators/allow-skip-org-when-global.decorator';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { HasPermission } from '../common/decorators/has-permission.decorator';
 import { OrgId } from '../common/decorators/org-id.decorator';
@@ -40,27 +41,36 @@ export class EmployeeController {
   constructor(private employeeService: EmployeeService) {}
 
   @Post('register')
-  @UseGuards(OrgRequiredGuard, PermissionGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
   @RequirePermission('employee:create')
+  @AllowSkipOrgWhenGlobal()
   @ApiOperation({ summary: 'Register new user and add as employee to organization' })
   @ApiHeader({ name: 'x-organization-id', required: true })
   @UsePipes(new ZodValidationPipe(registerEmployeeSchema))
-  register(@Body() dto: RegisterEmployeeDto, @OrgId() organizationId: string) {
-    return this.employeeService.register({ ...dto, organizationId });
+  register(@Body() dto: RegisterEmployeeDto, @OrgId() organizationId?: string) {
+    return this.employeeService.register({
+      ...dto,
+      organizationId: organizationId ?? dto.organizationId,
+    });
   }
 
   @Post()
-  @UseGuards(OrgRequiredGuard, PermissionGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
   @RequirePermission('employee:create')
+  @AllowSkipOrgWhenGlobal()
   @ApiOperation({ summary: 'Add existing user as employee to organization' })
   @ApiHeader({ name: 'x-organization-id', required: true })
   @UsePipes(new ZodValidationPipe(createEmployeeSchema))
-  create(@Body() dto: CreateEmployeeDto, @OrgId() organizationId: string) {
-    return this.employeeService.create({ ...dto, organizationId });
+  create(@Body() dto: CreateEmployeeDto, @OrgId() organizationId?: string) {
+    return this.employeeService.create({
+      ...dto,
+      organizationId: organizationId ?? dto.organizationId,
+    });
   }
 
   @Get()
-  @UseGuards(OrgRequiredGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
+  @RequirePermission('employee:read')
   @ApiOperation({ summary: 'Get employees by organization' })
   @ApiHeader({ name: 'x-organization-id', required: true })
   findAll(
@@ -73,7 +83,8 @@ export class EmployeeController {
   }
 
   @Get('user/:userId')
-  @UseGuards(OrgRequiredGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
+  @RequirePermission('employee:read')
   @ApiOperation({ summary: 'Get all employee profiles of a user' })
   @ApiHeader({ name: 'x-organization-id', required: true })
   findByUser(
@@ -87,7 +98,8 @@ export class EmployeeController {
   }
 
   @Get(':id')
-  @UseGuards(OrgRequiredGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
+  @RequirePermission('employee:read')
   @ApiOperation({ summary: 'Get employee by ID' })
   @ApiHeader({ name: 'x-organization-id', required: true })
   findOne(
@@ -99,7 +111,7 @@ export class EmployeeController {
   }
 
   @Patch(':id')
-  @UseGuards(OrgRequiredGuard, PermissionGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
   @RequirePermission('employee:update')
   @ApiOperation({ summary: 'Update employee' })
   @ApiHeader({ name: 'x-organization-id', required: true })
@@ -112,7 +124,7 @@ export class EmployeeController {
   }
 
   @Delete(':id')
-  @UseGuards(OrgRequiredGuard, PermissionGuard)
+  @UseGuards(PermissionGuard, OrgRequiredGuard)
   @RequirePermission('employee:delete')
   @ApiOperation({ summary: 'Remove employee (soft delete)' })
   @ApiHeader({ name: 'x-organization-id', required: true })
