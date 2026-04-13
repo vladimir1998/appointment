@@ -89,10 +89,13 @@ export class AuthContextMiddleware implements NestMiddleware {
             })),
           };
         }
-        if (req.user && req.organizationId) {
+        // Всегда сохраняем обогащённого пользователя (globalPosition / position).
+        // JwtAuthGuard позже подменит req.user на { id, email } из JWT — без этого
+        // PermissionGuard потерял бы права при вызовах без x-organization-id.
+        if (req.user) {
           req.authContext = {
             user: req.user,
-            organizationId: req.organizationId,
+            ...(req.organizationId ? { organizationId: req.organizationId } : {}),
           };
         }
       } catch {

@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -16,7 +15,6 @@ import { OrgRequiredGuard } from '../common/guards/org-required.guard';
 import { PermissionGuard } from '../common/guards/permission.guard';
 import { AllowSkipOrgWhenGlobal } from '../common/decorators/allow-skip-org-when-global.decorator';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
-import { HasPermission } from '../common/decorators/has-permission.decorator';
 import { OrgId } from '../common/decorators/org-id.decorator';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { ServiceService } from './service.service';
@@ -35,8 +33,7 @@ export class ServiceController {
   @RequirePermission('service:create')
   @AllowSkipOrgWhenGlobal()
   @ApiOperation({ summary: 'Create a new service' })
-  @UsePipes(new ZodValidationPipe(createServiceSchema))
-  create(@Body() dto: CreateServiceDto, @OrgId() organizationId?: string) {
+  create(@Body(new ZodValidationPipe(createServiceSchema)) dto: CreateServiceDto, @OrgId() organizationId?: string) {
     return this.serviceService.create({
       ...dto,
       organizationId: organizationId ?? dto.organizationId,
@@ -46,13 +43,8 @@ export class ServiceController {
   @Get()
   @RequirePermission('service:read')
   @ApiOperation({ summary: 'Get services by organization' })
-  findAll(
-    @OrgId() organizationId: string,
-    @HasPermission('service:read') includeInactive: boolean,
-  ) {
-    return this.serviceService.findAllByOrganization(organizationId, {
-      includeInactive,
-    });
+  findAll(@OrgId() organizationId: string) {
+    return this.serviceService.findAllByOrganization(organizationId);
   }
 
   @Get(':id')
@@ -61,12 +53,8 @@ export class ServiceController {
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @OrgId() organizationId: string,
-    @HasPermission('service:read') includeInactive: boolean,
   ) {
-    return this.serviceService.findOne(id, {
-      includeInactive,
-      organizationId,
-    });
+    return this.serviceService.findOne(id, { organizationId });
   }
 
   @Patch(':id')

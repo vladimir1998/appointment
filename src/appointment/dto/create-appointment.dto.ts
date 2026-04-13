@@ -1,11 +1,15 @@
 import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export const AppointmentStatusEnum = ['PENDING', 'APPROVED', 'IN_PROGRESS', 'FINISHED', 'REJECTED'] as const;
+export type AppointmentStatus = typeof AppointmentStatusEnum[number];
+
 export const createAppointmentSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(2000).optional(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
+  status: z.enum(AppointmentStatusEnum).optional(),
   clientId: z.uuid(),
   employeeId: z.uuid(),
   serviceId: z.uuid(),
@@ -29,6 +33,9 @@ export class CreateAppointmentDto {
 
   @ApiProperty({ example: '2026-02-22T10:30:00.000Z' })
   endTime: Date;
+
+  @ApiPropertyOptional({ enum: AppointmentStatusEnum, default: 'PENDING' })
+  status?: AppointmentStatus;
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   clientId: string;

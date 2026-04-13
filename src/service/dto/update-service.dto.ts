@@ -8,6 +8,7 @@ export const updateServiceSchema = z.object({
   price: z.coerce.number().min(0).optional(),
   duration: z.coerce.number().int().min(0).optional(),
   durationMax: z.coerce.number().int().positive().optional().nullable(),
+  isActive: z.boolean().optional(),
 });
 
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
@@ -30,4 +31,7 @@ export class UpdateServiceDto {
 
   @ApiPropertyOptional({ example: 60, description: 'Max duration (null to make fixed)' })
   durationMax?: number | null;
+
+  @ApiPropertyOptional({ example: true })
+  isActive?: boolean;
 }

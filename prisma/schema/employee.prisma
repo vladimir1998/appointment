@@ -1,8 +1,5 @@
 model Employee {
   id             String    @id @default(uuid())
-  firstName      String    @map("first_name")
-  lastName       String    @map("last_name")
-  phone          String?
   role           Role      @default(MEMBER)
   isActive       Boolean   @default(true) @map("is_active")
   isPublic       Boolean   @default(false) @map("is_public")

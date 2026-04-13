@@ -9,6 +9,20 @@ import { CreateEmployeeInput } from './dto/create-employee.dto';
 import { UpdateEmployeeInput } from './dto/update-employee.dto';
 import { RegisterEmployeeInput } from './dto/register-employee.dto';
 
+const employeeUserInclude = {
+  user: {
+    select: {
+      id: true,
+      email: true,
+      clients: {
+        where: { deletedAt: null },
+        take: 1,
+        select: { id: true, firstName: true, lastName: true, phone: true },
+      },
+    },
+  },
+} as const;
+
 @Injectable()
 export class EmployeeService {
   constructor(private prisma: PrismaService) {}
@@ -25,24 +39,37 @@ export class EmployeeService {
 
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
-        data: { email: dto.email, password: hash },
+        data: {
+          email: dto.email,
+          password: hash,
+        },
+      });
+
+      await tx.client.create({
+        data: {
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          userId: user.id,
+          ...(dto.phone != null ? { phone: dto.phone } : {}),
+        },
       });
 
       return tx.employee.create({
         data: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          phone: dto.phone,
           positionId: dto.positionId,
           userId: user.id,
           organizationId: dto.organizationId,
         },
-        include: { user: { select: { id: true, email: true } }, organization: true, position: true },
+        include: {
+          ...employeeUserInclude,
+          organization: true,
+          position: true,
+        },
       });
     });
   }
 
-  async create(dto: CreateEmployeeInput) {
+  async create(dto: CreateEmployeeInput & { organizationId: string }) {
     const existing = await this.prisma.employee.findFirst({
       where: this.prisma.notDeleted({
         userId: dto.userId,
@@ -56,8 +83,30 @@ export class EmployeeService {
     }
 
     return this.prisma.employee.create({
-      data: dto,
-      include: { user: { select: { id: true, email: true } }, organization: true, position: true },
+      data: {
+        userId: dto.userId,
+        organizationId: dto.organizationId,
+        ...(dto.positionId != null ? { positionId: dto.positionId } : {}),
+      },
+      include: {
+        ...employeeUserInclude,
+        organization: true,
+        position: true,
+      },
+    });
+  }
+
+  /** Все сотрудники в системе (для пользователя с глобальным employee:read без x-organization-id). */
+  async findAllSystemWide(options?: { includeAll?: boolean }) {
+    const where: Record<string, unknown> = this.prisma.notDeleted({});
+    if (!options?.includeAll) {
+      where.isPublic = true;
+      where.isActive = true;
+    }
+    return this.prisma.employee.findMany({
+      where,
+      include: { ...employeeUserInclude, position: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -74,20 +123,24 @@ export class EmployeeService {
     }
     return this.prisma.employee.findMany({
       where,
-      include: { user: { select: { id: true, email: true } }, position: true },
+      include: { ...employeeUserInclude, position: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
+  /**
+   * @param organizationId — если задан, сотрудник должен принадлежать этой организации;
+   *   если нет (глобальный доступ), достаточно id.
+   */
   async findOne(
     id: string,
-    organizationId: string,
+    organizationId: string | undefined,
     options?: { includeAll?: boolean },
   ) {
-    const where: Record<string, unknown> = this.prisma.notDeleted({
-      id,
-      organizationId,
-    });
+    const where: Record<string, unknown> = this.prisma.notDeleted({ id });
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     if (!options?.includeAll) {
       where.isPublic = true;
       where.isActive = true;
@@ -95,7 +148,7 @@ export class EmployeeService {
     const employee = await this.prisma.employee.findFirst({
       where,
       include: {
-        user: { select: { id: true, email: true } },
+        ...employeeUserInclude,
         organization: true,
         position: true,
       },
@@ -108,34 +161,42 @@ export class EmployeeService {
 
   async findByUserId(
     userId: string,
-    organizationId: string,
+    organizationId: string | undefined,
     options?: { includeAll?: boolean },
   ) {
-    const where: Record<string, unknown> = this.prisma.notDeleted({
-      userId,
-      organizationId,
-    });
+    const where: Record<string, unknown> = this.prisma.notDeleted({ userId });
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
     if (!options?.includeAll) {
       where.isPublic = true;
       where.isActive = true;
     }
     return this.prisma.employee.findMany({
       where,
-      include: { organization: true, position: true },
+      include: { ...employeeUserInclude, organization: true, position: true },
     });
   }
 
-  async update(id: string, dto: UpdateEmployeeInput, organizationId?: string) {
-    await this.findOne(id, organizationId!, { includeAll: true });
+  async update(
+    id: string,
+    dto: UpdateEmployeeInput,
+    organizationId?: string,
+  ) {
+    await this.findOne(id, organizationId, { includeAll: true });
     return this.prisma.employee.update({
       where: { id },
       data: dto,
-      include: { user: { select: { id: true, email: true } }, organization: true, position: true },
+      include: {
+        ...employeeUserInclude,
+        organization: true,
+        position: true,
+      },
     });
   }
 
   async remove(id: string, organizationId?: string) {
-    await this.findOne(id, organizationId!, { includeAll: true });
+    await this.findOne(id, organizationId, { includeAll: true });
     return this.prisma.softDelete(this.prisma.employee, { id });
   }
 }

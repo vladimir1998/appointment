@@ -20,7 +20,28 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
+  /** Создание учётной записи без выдачи токенов (например POST /users/create). */
+  async createUserOnly(dto: RegisterInput) {
+    const { user, client } = await this.createUserWithClient(dto);
+    const { password: _p, ...userSafe } = user;
+    return {
+      ...userSafe,
+      client: {
+        id: client.id,
+        firstName: client.firstName,
+        lastName: client.lastName,
+        phone: client.phone,
+      },
+    };
+  }
+
   async register(dto: RegisterInput) {
+    const { user } = await this.createUserWithClient(dto);
+    return this.generateTokens(user.id, user.email);
+  }
+
+  /** User — только учётные данные; имя/телефон — в `Client`. */
+  private async createUserWithClient(dto: RegisterInput) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -29,11 +50,26 @@ export class AuthService {
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
-      data: { email: dto.email, password: hash },
-    });
 
-    return this.generateTokens(user.id, user.email);
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: dto.email,
+          password: hash,
+        },
+      });
+
+      const client = await tx.client.create({
+        data: {
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          userId: user.id,
+          ...(dto.phone != null ? { phone: dto.phone } : {}),
+        },
+      });
+
+      return { user, client };
+    });
   }
 
   async login(dto: LoginInput) {

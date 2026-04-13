@@ -9,6 +9,7 @@ import { ClientModule } from './client/client.module';
 import { ServiceModule } from './service/service.module';
 import { PositionModule } from './position/position.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { PermissionModule } from './permission/permission.module';
 import { AuthContextMiddleware } from './common/middleware/auth-context.middleware';
 
 @Module({
@@ -17,6 +18,7 @@ import { AuthContextMiddleware } from './common/middleware/auth-context.middlewa
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
+    PermissionModule,
     UserModule,
     OrganizationModule,
     EmployeeModule,

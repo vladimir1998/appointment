@@ -15,7 +15,8 @@ export interface RequestUser {
 
 export interface AuthContext {
   user: RequestUser;
-  organizationId: string;
+  /** Задан, если в запросе был заголовок x-organization-id */
+  organizationId?: string;
 }
 
 export interface RequestWithContext extends Request {

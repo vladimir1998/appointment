@@ -23,16 +23,8 @@ export class ServiceService {
     });
   }
 
-  async findAllByOrganization(
-    organizationId: string,
-    options?: { includeInactive?: boolean },
-  ) {
-    const where: Record<string, unknown> = this.prisma.notDeleted({
-      organizationId,
-    });
-    if (!options?.includeInactive) {
-      where.isActive = true;
-    }
+  async findAllByOrganization(organizationId: string) {
+    const where = this.prisma.notDeleted({ organizationId });
     return this.prisma.service.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -41,12 +33,9 @@ export class ServiceService {
 
   async findOne(
     id: string,
-    options?: { includeInactive?: boolean; organizationId?: string },
+    options?: { organizationId?: string },
   ) {
     const where: Record<string, unknown> = this.prisma.notDeleted({ id });
-    if (!options?.includeInactive) {
-      where.isActive = true;
-    }
     if (options?.organizationId) {
       where.organizationId = options.organizationId;
     }
@@ -61,7 +50,7 @@ export class ServiceService {
   }
 
   async update(id: string, dto: UpdateServiceInput, organizationId?: string) {
-    const service = await this.findOne(id, { includeInactive: true });
+    const service = await this.findOne(id, {});
     if (organizationId && service.organizationId !== organizationId) {
       throw new NotFoundException('Service not found');
     }
@@ -73,7 +62,7 @@ export class ServiceService {
   }
 
   async remove(id: string, organizationId?: string) {
-    const service = await this.findOne(id, { includeInactive: true });
+    const service = await this.findOne(id, {});
     if (organizationId && service.organizationId !== organizationId) {
       throw new NotFoundException('Service not found');
     }

@@ -76,6 +76,18 @@ async function main() {
       where: { email },
       data: { globalPositionId: superadminPosition.id },
     });
+    const profile = await prisma.client.findFirst({
+      where: { userId: existing.id, deletedAt: null },
+    });
+    if (!profile) {
+      await prisma.client.create({
+        data: {
+          userId: existing.id,
+          firstName: 'Super',
+          lastName: 'Admin',
+        },
+      });
+    }
     console.log(`Superadmin already exists: ${email}, globalPosition updated`);
     return;
   }
@@ -87,6 +99,14 @@ async function main() {
       email,
       password: hash,
       globalPositionId: superadminPosition.id,
+    },
+  });
+
+  await prisma.client.create({
+    data: {
+      userId: user.id,
+      firstName: 'Super',
+      lastName: 'Admin',
     },
   });
 

@@ -2,32 +2,24 @@ import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const createEmployeeSchema = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  phone: z.string().max(20).optional(),
   positionId: z.uuid().optional(),
   userId: z.uuid(),
-  organizationId: z.uuid(),
+  /** Можно передать в теле или через заголовок x-organization-id */
+  organizationId: z.uuid().optional(),
 });
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
 export class CreateEmployeeDto {
-  @ApiProperty({ example: 'John' })
-  firstName: string;
-
-  @ApiProperty({ example: 'Doe' })
-  lastName: string;
-
-  @ApiPropertyOptional({ example: '+1234567890' })
-  phone?: string;
-
   @ApiPropertyOptional({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID должности' })
   positionId?: string;
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   userId: string;
 
-  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
-  organizationId: string;
+  @ApiPropertyOptional({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'ID организации; можно не указывать, если передан заголовок x-organization-id',
+  })
+  organizationId?: string;
 }

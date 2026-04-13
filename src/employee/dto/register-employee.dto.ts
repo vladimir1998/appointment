@@ -20,13 +20,13 @@ export class RegisterEmployeeDto {
   @ApiProperty({ example: 'secret123' })
   password: string;
 
-  @ApiProperty({ example: 'John' })
+  @ApiProperty({ example: 'John', description: 'Имя для записи Client (не хранится в employees)' })
   firstName: string;
 
-  @ApiProperty({ example: 'Doe' })
+  @ApiProperty({ example: 'Doe', description: 'Фамилия для записи Client' })
   lastName: string;
 
-  @ApiPropertyOptional({ example: '+1234567890' })
+  @ApiPropertyOptional({ example: '+1234567890', description: 'Телефон для записи Client' })
   phone?: string;
 
   @ApiPropertyOptional({ example: '550e8400-e29b-41d4-a716-446655440000', description: 'ID должности' })

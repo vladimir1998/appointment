@@ -13,7 +13,10 @@ import {
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionGuard } from '../common/guards/permission.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { RequestUser } from '../common/auth-context.types';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
+import { OrganizationReadScopeGuard } from './guards/organization-read-scope.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { OrganizationService } from './organization.service';
 import {
@@ -43,19 +46,28 @@ export class OrganizationController {
   }
 
   @Get()
-  @UseGuards(PermissionGuard)
-  @RequirePermission('organization:read')
-  @ApiOperation({ summary: 'Get all organizations' })
-  findAll() {
-    return this.organizationService.findAll();
+  @UseGuards(OrganizationReadScopeGuard)
+  @ApiOperation({
+    summary: 'Список организаций',
+    description:
+      'С глобальным organization:read — все организации. Иначе только организации, где у пользователя сотрудник с правом organization:read в должности.',
+  })
+  findAll(@CurrentUser() user: RequestUser) {
+    return this.organizationService.findAllForCaller(user);
   }
 
   @Get(':id')
-  @UseGuards(PermissionGuard)
-  @RequirePermission('organization:read')
-  @ApiOperation({ summary: 'Get organization by ID' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.organizationService.findOne(id);
+  @UseGuards(OrganizationReadScopeGuard)
+  @ApiOperation({
+    summary: 'Организация по ID',
+    description:
+      'С глобальным organization:read — любая. Иначе только если пользователь имеет organization:read в этой организации (через должность).',
+  })
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.organizationService.findOneForCaller(user, id);
   }
 
   @Patch(':id')
