@@ -56,7 +56,7 @@ export class AppointmentService {
       serviceId: dto.serviceId,
     });
     return this.prisma.appointment.create({
-      data: dto,
+      data: dto as any,
       include: appointmentInclude,
     });
   }
@@ -108,7 +108,7 @@ export class AppointmentService {
     });
     return this.prisma.appointment.update({
       where: { id },
-      data: dto,
+      data: dto as any,
       include: appointmentInclude,
     });
   }
