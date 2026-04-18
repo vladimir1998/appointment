@@ -16,7 +16,7 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "engines": {
-    "node": ">=22"
+    "node": "^20.19 || ^22.12 || >=24"
   },
   "keywords": [],
   "author": "",
