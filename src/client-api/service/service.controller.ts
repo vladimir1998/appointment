@@ -10,11 +10,14 @@ export class ClientApiServiceController {
   @Get()
   @ApiOperation({ summary: 'Активные услуги организации' })
   @ApiQuery({ name: 'employeeId', required: false, type: String, format: 'uuid' })
+  @ApiQuery({ name: 'include', required: false, type: [String], isArray: true })
   findAll(
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
     @Query('employeeId') employeeId?: string,
+    @Query('include') include?: string | string[],
   ) {
-    return this.serviceService.findAll(organizationId, employeeId);
+    const includeArray = include ? (Array.isArray(include) ? include : [include]) : [];
+    return this.serviceService.findAll(organizationId, employeeId, includeArray);
   }
 
   @Get(':id')

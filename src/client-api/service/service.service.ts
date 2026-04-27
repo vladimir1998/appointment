@@ -5,7 +5,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class ClientApiServiceService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(organizationId: string, employeeId?: string) {
+  findAll(organizationId: string, employeeId?: string, include: string[] = []) {
+    const includeEmployees = include.includes('employee');
     return this.prisma.service.findMany({
       where: this.prisma.notDeleted({
         organizationId,
@@ -21,6 +22,16 @@ export class ClientApiServiceService {
         price: true,
         duration: true,
         durationMax: true,
+        ...(includeEmployees && {
+          employees: {
+            where: this.prisma.notDeleted({ isPublic: true, isActive: true }),
+            select: {
+              id: true,
+              user: { select: { email: true } },
+              position: { select: { id: true, name: true } },
+            },
+          },
+        }),
       },
     });
   }
