@@ -1,11 +1,22 @@
+enum PriceType {
+  exact
+  approximate
+  from
+  range
+}
+
 model Service {
   id             String       @id @default(uuid())
   title          String
   description    String
   photo          String?
-  price          Decimal?     @db.Decimal(10, 2)
-  duration       Int?             // min duration in minutes (or fixed if durationMax is null)
-  durationMax    Int?   @map("duration_max") // max duration in minutes (null = fixed duration)
+  price          Decimal      @default(0) @db.Decimal(10, 2)
+  priceMax       Decimal?     @map("price_max") @db.Decimal(10, 2)
+  priceType      PriceType    @default(exact) @map("price_type")
+  priceComment   String?      @map("price_comment")
+  duration       Int          @default(0)
+  durationMax    Int?         @map("duration_max")
+  about          String[]
   isActive       Boolean      @default(true) @map("is_active")
   organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

@@ -86,8 +86,7 @@ export class EmployeeController {
       );
     }
     return this.employeeService.create({
-      userId: dto.userId,
-      positionId: dto.positionId,
+      ...dto,
       organizationId: orgId,
     });
   }

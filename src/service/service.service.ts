@@ -11,11 +11,15 @@ export class ServiceService {
     const data = {
       title: dto.title,
       description: dto.description,
+      price: dto.price,
+      duration: dto.duration,
       organizationId: dto.organizationId,
       ...(dto.photo != null && { photo: dto.photo }),
-      ...(dto.price != null && { price: dto.price }),
-      ...(dto.duration != null && { duration: dto.duration }),
+      ...(dto.priceMax != null && { priceMax: dto.priceMax }),
+      ...(dto.priceType != null && { priceType: dto.priceType }),
+      ...(dto.priceComment != null && { priceComment: dto.priceComment }),
       ...(dto.durationMax != null && { durationMax: dto.durationMax }),
+      ...(dto.about != null && { about: dto.about }),
     };
     return this.prisma.service.create({
       data: data as Parameters<PrismaService['service']['create']>[0]['data'],

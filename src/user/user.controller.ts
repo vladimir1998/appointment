@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, Req, UseGuards, UsePipes } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Query, Req, UseGuards, UsePipes } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthService } from '../auth/auth.service';
 import { RegisterDto, registerSchema } from '../auth/dto/register.dto';
@@ -14,6 +14,15 @@ export class UserController {
     private userService: UserService,
     private authService: AuthService,
   ) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Search users' })
+  @ApiQuery({ name: 'email', required: false })
+  findAll(@Query('email') email?: string) {
+    return this.userService.findAll(email);
+  }
 
   @Post('create')
   @ApiOperation({

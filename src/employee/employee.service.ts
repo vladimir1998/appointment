@@ -14,11 +14,11 @@ const employeeUserInclude = {
     select: {
       id: true,
       email: true,
-      clients: {
-        where: { deletedAt: null },
-        take: 1,
-        select: { id: true, firstName: true, lastName: true, phone: true },
-      },
+      firstName: true,
+      lastName: true,
+      phone: true,
+      photo: true,
+      bio: true,
     },
   },
 } as const;
@@ -35,21 +35,15 @@ export class EmployeeService {
       throw new ConflictException('Email already in use');
     }
 
-    const hash = await bcrypt.hash(dto.password, 10);
+    const hash = await (bcrypt.hash(dto.password ?? '', 10) as Promise<string>);
 
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           email: dto.email,
           password: hash,
-        },
-      });
-
-      await tx.client.create({
-        data: {
           firstName: dto.firstName,
           lastName: dto.lastName,
-          userId: user.id,
           ...(dto.phone != null ? { phone: dto.phone } : {}),
         },
       });
@@ -59,11 +53,30 @@ export class EmployeeService {
           positionId: dto.positionId,
           userId: user.id,
           organizationId: dto.organizationId,
+          ...(dto.firstName != null ? { firstName: dto.firstName } : {}),
+          ...(dto.lastName != null ? { lastName: dto.lastName } : {}),
+          ...(dto.phone != null ? { phone: dto.phone } : {}),
+          ...(dto.photo != null ? { photo: dto.photo } : {}),
+          ...(dto.description != null ? { description: dto.description } : {}),
+          ...(dto.about != null ? { about: dto.about } : {}),
+          ...(dto.education != null ? { education: dto.education } : {}),
+          ...(dto.certificates != null ? { certificates: dto.certificates } : {}),
+          ...(dto.workSchedule != null ? { workSchedule: dto.workSchedule } : {}),
+          ...(dto.isActive != null ? { isActive: dto.isActive } : {}),
+          ...(dto.isPublic != null ? { isPublic: dto.isPublic } : {}),
+          ...(dto.serviceIds?.length
+            ? { services: { connect: dto.serviceIds.map((id) => ({ id })) } }
+            : {}),
+          ...(dto.specialtyIds?.length
+            ? { specialties: { connect: dto.specialtyIds.map((id) => ({ id })) } }
+            : {}),
         },
         include: {
           ...employeeUserInclude,
           organization: true,
           position: true,
+          services: true,
+          specialties: true,
         },
       });
     });
@@ -87,11 +100,30 @@ export class EmployeeService {
         userId: dto.userId,
         organizationId: dto.organizationId,
         ...(dto.positionId != null ? { positionId: dto.positionId } : {}),
+        ...(dto.firstName != null ? { firstName: dto.firstName } : {}),
+        ...(dto.lastName != null ? { lastName: dto.lastName } : {}),
+        ...(dto.phone != null ? { phone: dto.phone } : {}),
+        ...(dto.photo != null ? { photo: dto.photo } : {}),
+        ...(dto.description != null ? { description: dto.description } : {}),
+        ...(dto.about != null ? { about: dto.about } : {}),
+        ...(dto.education != null ? { education: dto.education } : {}),
+        ...(dto.certificates != null ? { certificates: dto.certificates } : {}),
+        ...(dto.workSchedule != null ? { workSchedule: dto.workSchedule } : {}),
+        ...(dto.isActive != null ? { isActive: dto.isActive } : {}),
+        ...(dto.isPublic != null ? { isPublic: dto.isPublic } : {}),
+        ...(dto.serviceIds?.length
+          ? { services: { connect: dto.serviceIds.map((id) => ({ id })) } }
+          : {}),
+        ...(dto.specialtyIds?.length
+          ? { specialties: { connect: dto.specialtyIds.map((id) => ({ id })) } }
+          : {}),
       },
       include: {
         ...employeeUserInclude,
         organization: true,
         position: true,
+        services: true,
+        specialties: true,
       },
     });
   }
@@ -105,7 +137,7 @@ export class EmployeeService {
     }
     return this.prisma.employee.findMany({
       where,
-      include: { ...employeeUserInclude, position: true },
+      include: { ...employeeUserInclude, position: true, services: true, specialties: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -123,7 +155,7 @@ export class EmployeeService {
     }
     return this.prisma.employee.findMany({
       where,
-      include: { ...employeeUserInclude, position: true },
+      include: { ...employeeUserInclude, position: true, services: true, specialties: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -151,6 +183,8 @@ export class EmployeeService {
         ...employeeUserInclude,
         organization: true,
         position: true,
+        services: true,
+        specialties: true,
       },
     });
     if (!employee) {
@@ -174,7 +208,7 @@ export class EmployeeService {
     }
     return this.prisma.employee.findMany({
       where,
-      include: { ...employeeUserInclude, organization: true, position: true },
+      include: { ...employeeUserInclude, organization: true, position: true, services: true, specialties: true },
     });
   }
 
@@ -183,15 +217,40 @@ export class EmployeeService {
     dto: UpdateEmployeeInput,
     organizationId?: string,
   ) {
-    await this.findOne(id, organizationId, { includeAll: true });
-    return this.prisma.employee.update({
-      where: { id },
-      data: dto,
-      include: {
-        ...employeeUserInclude,
-        organization: true,
-        position: true,
-      },
+    const employee = await this.findOne(id, organizationId, { includeAll: true });
+
+    const { email, serviceIds, specialtyIds, ...employeeData } = dto;
+
+    return this.prisma.$transaction(async (tx) => {
+      const userUpdate: Record<string, unknown> = {};
+      if (email != null) userUpdate.email = email;
+
+      if (Object.keys(userUpdate).length > 0) {
+        await tx.user.update({
+          where: { id: employee.userId },
+          data: userUpdate,
+        });
+      }
+
+      return tx.employee.update({
+        where: { id },
+        data: {
+          ...employeeData,
+          ...(serviceIds != null
+            ? { services: { set: serviceIds.map((sid) => ({ id: sid })) } }
+            : {}),
+          ...(specialtyIds != null
+            ? { specialties: { set: specialtyIds.map((sid) => ({ id: sid })) } }
+            : {}),
+        },
+        include: {
+          ...employeeUserInclude,
+          organization: true,
+          position: true,
+          services: true,
+          specialties: true,
+        },
+      });
     });
   }
 

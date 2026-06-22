@@ -28,6 +28,10 @@ const DEFAULT_PERMISSIONS = [
   { name: 'read appointment', value: 'appointment:read' },
   { name: 'update appointment', value: 'appointment:update' },
   { name: 'delete appointment', value: 'appointment:delete' },
+  { name: 'create specialty', value: 'specialty:create' },
+  { name: 'read specialty', value: 'specialty:read' },
+  { name: 'update specialty', value: 'specialty:update' },
+  { name: 'delete specialty', value: 'specialty:delete' },
 ];
 
 const SUPERADMIN_ORG_NAME = 'System';
@@ -76,42 +80,24 @@ async function main() {
       where: { email },
       data: { globalPositionId: superadminPosition.id },
     });
-    const profile = await prisma.client.findFirst({
-      where: { userId: existing.id, deletedAt: null },
-    });
-    if (!profile) {
-      await prisma.client.create({
-        data: {
-          userId: existing.id,
-          firstName: 'Super',
-          lastName: 'Admin',
-        },
-      });
-    }
     console.log(`Superadmin already exists: ${email}, globalPosition updated`);
     return;
   }
 
   const hash = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email,
       password: hash,
+      firstName: 'Super',
+      lastName: 'Admin',
       globalPositionId: superadminPosition.id,
     },
   });
 
-  await prisma.client.create({
-    data: {
-      userId: user.id,
-      firstName: 'Super',
-      lastName: 'Admin',
-    },
-  });
-
   console.log('Superadmin created:');
-  console.log(`  email:    ${user.email}`);
+  console.log(`  email:    ${email}`);
   console.log(`  password: ${password}`);
   console.log(`  position: ${SUPERADMIN_POSITION_NAME} (all permissions)`);
 }

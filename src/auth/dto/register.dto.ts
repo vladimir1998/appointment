@@ -7,6 +7,8 @@ export const registerSchema = z.object({
   firstName: z.string().min(1).max(120),
   lastName: z.string().min(1).max(120),
   phone: z.string().min(1).max(32).optional(),
+  photo: z.string().url().optional(),
+  bio: z.string().max(1000).optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -26,4 +28,10 @@ export class RegisterDto {
 
   @ApiPropertyOptional({ example: '+79001234567' })
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/photo.jpg' })
+  photo?: string;
+
+  @ApiPropertyOptional({ example: 'Краткое описание' })
+  bio?: string;
 }

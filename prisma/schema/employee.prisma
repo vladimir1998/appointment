@@ -1,19 +1,30 @@
 model Employee {
-  id             String    @id @default(uuid())
-  role           Role      @default(MEMBER)
-  isActive       Boolean   @default(true) @map("is_active")
-  isPublic       Boolean   @default(false) @map("is_public")
-  userId         String    @map("user_id")
-  organizationId String    @map("organization_id")
-  positionId     String?   @map("position_id")
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  position       Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
-  appointments   Appointment[] @relation("EmployeeAppointments")
-  services       Service[]
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-  deletedAt      DateTime? @map("deleted_at")
+  id              String    @id @default(uuid())
+  role            Role      @default(MEMBER)
+  isActive        Boolean   @default(true) @map("is_active")
+  isPublic        Boolean   @default(false) @map("is_public")
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  phone           String?
+  photo           String?
+  description     String?
+  about           String[]
+  workSchedule    Json?     @map("work_schedule")
+  experienceYears Int?      @map("experience_years")
+  education       String[]
+  certificates    String[]
+  userId          String    @map("user_id")
+  organizationId  String    @map("organization_id")
+  positionId      String?   @map("position_id")
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  position        Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  specialties     Specialty[]
+  appointments    Appointment[] @relation("EmployeeAppointments")
+  services        Service[]
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   @@unique([userId, organizationId])
   @@map("employees")

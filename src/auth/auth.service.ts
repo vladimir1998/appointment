@@ -22,26 +22,17 @@ export class AuthService {
 
   /** Создание учётной записи без выдачи токенов (например POST /users/create). */
   async createUserOnly(dto: RegisterInput) {
-    const { user, client } = await this.createUserWithClient(dto);
+    const user = await this.createUser(dto);
     const { password: _p, ...userSafe } = user;
-    return {
-      ...userSafe,
-      client: {
-        id: client.id,
-        firstName: client.firstName,
-        lastName: client.lastName,
-        phone: client.phone,
-      },
-    };
+    return userSafe;
   }
 
   async register(dto: RegisterInput) {
-    const { user } = await this.createUserWithClient(dto);
+    const user = await this.createUser(dto);
     return this.generateTokens(user.id, user.email);
   }
 
-  /** User — только учётные данные; имя/телефон — в `Client`. */
-  private async createUserWithClient(dto: RegisterInput) {
+  private async createUser(dto: RegisterInput) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -51,24 +42,16 @@ export class AuthService {
 
     const hash = await bcrypt.hash(dto.password, 10);
 
-    return this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          email: dto.email,
-          password: hash,
-        },
-      });
-
-      const client = await tx.client.create({
-        data: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          userId: user.id,
-          ...(dto.phone != null ? { phone: dto.phone } : {}),
-        },
-      });
-
-      return { user, client };
+    return this.prisma.user.create({
+      data: {
+        email: dto.email,
+        password: hash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        ...(dto.phone != null ? { phone: dto.phone } : {}),
+        ...(dto.photo != null ? { photo: dto.photo } : {}),
+        ...(dto.bio != null ? { bio: dto.bio } : {}),
+      },
     });
   }
 
@@ -98,6 +81,11 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        photo: user.photo,
+        bio: user.bio,
         isEmployee: user.employees.length > 0,
         employees: user.employees.map((emp) => ({
           id: emp.id,

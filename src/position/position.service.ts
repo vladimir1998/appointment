@@ -31,6 +31,7 @@ export class PositionService {
   async findOne(id: string) {
     const position = await this.prisma.position.findFirst({
       where: this.prisma.notDeleted({ id }),
+      include: { permissions: true },
     });
     if (!position) {
       throw new NotFoundException('Position not found');

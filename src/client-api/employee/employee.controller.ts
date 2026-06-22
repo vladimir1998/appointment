@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ClientApiEmployeeService } from './employee.service';
 
@@ -18,5 +18,16 @@ export class ClientApiEmployeeController {
   ) {
     const includeArray = include ? (Array.isArray(include) ? include : [include]) : [];
     return this.employeeService.findAll(organizationId, serviceId, includeArray);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Публичный профиль сотрудника' })
+  async findOne(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const employee = await this.employeeService.findOne(organizationId, id);
+    if (!employee) throw new NotFoundException('Employee not found');
+    return employee;
   }
 }

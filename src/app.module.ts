@@ -12,6 +12,8 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { PermissionModule } from './permission/permission.module';
 import { AuthContextMiddleware } from './common/middleware/auth-context.middleware';
 import { ClientApiModule } from './client-api/client-api.module';
+import { InviteModule } from './invite/invite.module';
+import { SpecialtyModule } from './specialty/specialty.module';
 
 @Module({
   providers: [AuthContextMiddleware],
@@ -28,6 +30,8 @@ import { ClientApiModule } from './client-api/client-api.module';
     PositionModule,
     AppointmentModule,
     ClientApiModule,
+    InviteModule,
+    SpecialtyModule,
   ],
 })
 export class AppModule implements NestModule {

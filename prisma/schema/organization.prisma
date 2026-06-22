@@ -12,7 +12,9 @@ model Organization {
   clients      OrganizationClient[]
   services     Service[]
   positions    Position[]
+  specialties  Specialty[]
   appointments Appointment[]
+  invites      Invite[]
 
   @@map("organizations")
 }

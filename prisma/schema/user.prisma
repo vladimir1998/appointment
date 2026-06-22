@@ -2,15 +2,22 @@ model User {
   id               String    @id @default(uuid())
   email            String    @unique
   password         String
+  firstName        String?   @map("first_name")
+  lastName         String?   @map("last_name")
+  phone            String?
+  photo            String?
+  bio              String?
   globalPositionId String?   @map("global_position_id")
   globalPosition   Position? @relation("UserGlobalPosition", fields: [globalPositionId], references: [id], onDelete: SetNull)
   createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  deletedAt  DateTime? @map("deleted_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
 
-  employees     Employee[]
-  clients       Client[]
-  refreshTokens RefreshToken[]
+  employees        Employee[]
+  clients          Client[]
+  refreshTokens    RefreshToken[]
+  invites          Invite[]  @relation("InviteUser")
+  sentInvites      Invite[]  @relation("InviteInvitedBy")
 
   @@map("users")
 }
