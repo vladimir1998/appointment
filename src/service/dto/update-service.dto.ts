@@ -14,6 +14,7 @@ export const updateServiceSchema = z.object({
   durationMax: z.coerce.number().int().positive().optional().nullable(),
   about: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
+  employeeIds: z.array(z.string().uuid()).optional(),
 });
 
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
@@ -51,4 +52,7 @@ export class UpdateServiceDto {
 
   @ApiPropertyOptional({ example: true })
   isActive?: boolean;
+
+  @ApiPropertyOptional({ example: ['uuid1', 'uuid2'] })
+  employeeIds?: string[];
 }

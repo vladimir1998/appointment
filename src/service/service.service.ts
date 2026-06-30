@@ -32,6 +32,9 @@ export class ServiceService {
     return this.prisma.service.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      include: {
+        employees: { select: { id: true, firstName: true, lastName: true, user: { select: { id: true, email: true } } } },
+      },
     });
   }
 
@@ -45,7 +48,10 @@ export class ServiceService {
     }
     const service = await this.prisma.service.findFirst({
       where,
-      include: { organization: { select: { id: true, name: true } } },
+      include: {
+        organization: { select: { id: true, name: true } },
+        employees: { select: { id: true, firstName: true, lastName: true, user: { select: { id: true, email: true } } } },
+      },
     });
     if (!service) {
       throw new NotFoundException('Service not found');
@@ -58,10 +64,17 @@ export class ServiceService {
     if (organizationId && service.organizationId !== organizationId) {
       throw new NotFoundException('Service not found');
     }
+    const { employeeIds, ...rest } = dto;
     return this.prisma.service.update({
       where: { id },
-      data: dto,
-      include: { organization: { select: { id: true, name: true } } },
+      data: {
+        ...rest,
+        ...(employeeIds !== undefined && { employees: { set: employeeIds.map((eid) => ({ id: eid })) } }),
+      },
+      include: {
+        organization: { select: { id: true, name: true } },
+        employees: { select: { id: true, firstName: true, lastName: true, user: { select: { id: true, email: true } } } },
+      },
     });
   }
 
